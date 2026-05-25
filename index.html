@@ -217,7 +217,7 @@
                              '#222538';  
         }
 
-        fetch('bol_municipios_339_pob2012_ed.geojson')
+        fetch('bol_municipios_339_pob2012_ed.json')
             .then(res => {
                 if (!res.ok) throw new Error("No se pudo abrir el archivo GeoJSON");
                 return res.json();
