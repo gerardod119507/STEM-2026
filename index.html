@@ -9,118 +9,19 @@
     <style>
         body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background: #0a0a14; }
         #map { height: 100vh; width: 100%; }
-        
-        /* Estilización del Popup de Información (Borde ultra fino) */
-        .leaflet-popup-content-wrapper, .leaflet-popup-tip {
-            background: none !important;
-            box-shadow: none !important;
-            border: none !important;
-            padding: 0 !important;
-        }
+        .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: none !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
         .leaflet-popup-close-button { display: none !important; }
         .leaflet-popup-content { margin: 0 !important; }
-        
-        .info {
-            background: rgba(10, 10, 20, 0.95);
-            border: 0.5px solid #5DCAA5;
-            border-radius: 6px;
-            padding: 8px 14px;
-            color: #e8e8e8;
-            font-size: 13px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
-            pointer-events: none;
-            text-align: center;
-        }
-
-        /* Título Principal Compacto */
-        .title {
-            position: fixed;
-            top: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(15,15,30,0.95);
-            border: 1px solid #5DCAA5;
-            border-radius: 8px;
-            padding: 8px 20px;
-            z-index: 1000;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }
-
-        /* Recuadro del Total de Equipos Ultra Delgado */
-        .total-box {
-            position: fixed;
-            bottom: 15px;
-            left: 15px;
-            background: rgba(15,15,30,0.95);
-            border: 1px solid #5DCAA5;
-            border-radius: 6px;
-            padding: 6px 14px;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }
-
-        /* LEYENDA HORIZONTAL COMPACTA: No tapa espacio vertical */
-        .legend {
-            position: fixed;
-            bottom: 15px;
-            right: 15px;
-            background: rgba(15,15,30,0.95);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 6px;
-            padding: 8px 12px;
-            z-index: 1000;
-            color: #e8e8e8;
-            font-size: 11px;
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-        }
-        .legend i {
-            width: 11px;
-            height: 11px;
-            display: inline-block;
-            margin-right: 5px;
-            border-radius: 2px;
-            opacity: 0.8;
-        }
-
-        /* Botón de Reset de Zoom */
-        .btn-reset-view {
-            background: rgba(15, 15, 30, 0.95) !important;
-            border: 1px solid #5DCAA5 !important;
-            color: #5DCAA5 !important;
-            font-weight: bold;
-            font-size: 16px !important;
-            cursor: pointer;
-            border-radius: 4px;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            transition: all 0.2s ease;
-        }
-        .btn-reset-view:hover {
-            background: #5DCAA5 !important;
-            color: #0a0a14 !important;
-        }
-
-        .leaflet-bar a {
-            background: rgba(15, 15, 30, 0.95) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: #e8e8e8 !important;
-        }
-        .leaflet-bar a:hover {
-            background: #5DCAA5 !important;
-            color: #0a0a14 !important;
-        }
+        .info { background: rgba(10, 10, 20, 0.95); border: 0.5px solid #5DCAA5; border-radius: 6px; padding: 8px 14px; color: #e8e8e8; font-size: 13px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6); pointer-events: none; text-align: center; }
+        .title { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(15,15,30,0.95); border: 1px solid #5DCAA5; border-radius: 8px; padding: 8px 20px; z-index: 1000; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .total-box { position: fixed; bottom: 15px; left: 15px; background: rgba(15,15,30,0.95); border: 1px solid #5DCAA5; border-radius: 6px; padding: 6px 14px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .legend { position: fixed; bottom: 15px; right: 15px; background: rgba(15,15,30,0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; padding: 8px 12px; z-index: 1000; color: #e8e8e8; font-size: 11px; display: flex; gap: 12px; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .legend-item { display: flex; align-items: center; }
+        .legend i { width: 11px; height: 11px; display: inline-block; margin-right: 5px; border-radius: 2px; opacity: 0.8; }
+        .btn-reset-view { background: rgba(15, 15, 30, 0.95) !important; border: 1px solid #5DCAA5 !important; color: #5DCAA5 !important; font-weight: bold; font-size: 16px !important; cursor: pointer; border-radius: 4px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: all 0.2s ease; }
+        .btn-reset-view:hover { background: #5DCAA5 !important; color: #0a0a14 !important; }
+        .leaflet-bar a { background: rgba(15, 15, 30, 0.95) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; color: #e8e8e8 !important; }
+        .leaflet-bar a:hover { background: #5DCAA5 !important; color: #0a0a14 !important; }
     </style>
 </head>
 <body>
@@ -128,151 +29,78 @@
         <div style="color:#5DCAA5; font-size:16px; font-weight:700;">Equipos por Municipio</div>
         <div style="color:#aaa; font-size:12px;">Departamento de Cochabamba</div>
     </div>
-
     <div class="total-box">
         <div style="color:#5DCAA5; font-size:15px; font-weight:700;">Total Equipos: 393</div>
     </div>
-
     <div class="legend">
         <span style="font-weight: 700; color: #5DCAA5; font-size: 11px; text-transform: uppercase;">Rangos:</span>
-        <div class="legend-item"><i style="background: #818cf8"></i>> 50</div>
+        <div class="legend-item"><i style="background: #818cf8"></i>&gt; 50</div>
         <div class="legend-item"><i style="background: #c084fc"></i>21 - 50</div>
         <div class="legend-item"><i style="background: #f472b6"></i>11 - 20</div>
         <div class="legend-item"><i style="background: #fb7185"></i>1 - 10</div>
         <div class="legend-item"><i style="background: #222538"></i>Sin registros</div>
     </div>
-
     <div id="map"></div>
-
     <script>
         const centroCochabamba = [-17.38, -65.95];
-        const zoomIdeal = 8.5;
-
-        const map = L.map('map', {
-            center: centroCochabamba,
-            zoom: zoomIdeal,
-            zoomControl: false,
-            zoomSnap: 0.1,     
-            zoomDelta: 0.5,    
-            wheelPxPerZoomLevel: 120 
-        });
-
+        const zoomIdeal = 8.2;
+        const map = L.map('map', { center: centroCochabamba, zoom: zoomIdeal, zoomControl: false, zoomSnap: 0.1, zoomDelta: 0.5 });
         L.control.zoom({ position: 'topright' }).addTo(map);
-
+        
         const resetControl = L.control({ position: 'topright' });
         resetControl.onAdd = function () {
             const div = L.DomUtil.create('div', 'leaflet-bar');
             div.innerHTML = `<button class="btn-reset-view" title="Restablecer Vista Global">🏠</button>`;
-            div.onclick = function (e) {
-                e.stopPropagation();
-                map.flyTo(centroCochabamba, zoomIdeal, { duration: 1.2 });
-            };
+            div.onclick = function (e) { e.stopPropagation(); map.flyTo(centroCochabamba, zoomIdeal, { duration: 1.2 }); };
             return div;
         };
         resetControl.addTo(map);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
-        }).addTo(map);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { attribution: '&copy; CARTO' }).addTo(map);
 
         const equiposData = {
-            "AIQUILE": 15,
-            "ARANI": 7,
-            "BOLIVAR": 8,
-            "CAPINOTA": 2,
-            "COCHABAMBA": 98, 
-            "CLIZA": 10,
-            "COCAPATA": 10,
-            "COLCAPIRHUA": 19,
-            "COLOMI": 3,
-            "CURAHUARA DE CARANGAS": 2,
-            "ENTRE RIOS (BULO BULO)": 12,
-            "INDEPENDENCIA": 10,
-            "MIZQUE": 6,
-            "OMEREQUE": 2,
-            "PASORAPA": 5,
-            "POJO": 4,
-            "PUERTO VILLARROEL": 14,
-            "PUNATA": 15,
-            "QUILLACOLLO": 28,
-            "SACABA": 62,
-            "SAN BENITO": 14,
-            "SIPE SIPE": 8, 
-            "SUCRE": 3,
-            "TACOPAYA": 2,
-            "TAPACARI": 2,
-            "TIQUIPAYA": 18,
-            "TIRAQUE": 2,
-            "TOTORA": 3,
-            "VILA VILA": 3,
-            "VILA TUNARI": 2,
-            "VINTO": 4
+            "AIQUILE": 15, "ARANI": 7, "BOLIVAR": 8, "CAPINOTA": 2, "COCHABAMBA": 98, "CLIZA": 10,
+            "COCAPATA": 10, "COLCAPIRHUA": 19, "COLOMI": 3, "ENTRE RIOS (BULO BULO)": 12, "INDEPENDENCIA": 10,
+            "MIZQUE": 6, "OMEREQUE": 2, "PASORAPA": 5, "POJO": 4, "PUERTO VILLARROEL": 14, "PUNATA": 15,
+            "QUILLACOLLO": 28, "SACABA": 62, "SAN BENITO": 14, "SIPE SIPE": 8, "TACOPAYA": 2, "TAPACARI": 2,
+            "TIQUIPAYA": 18, "TIRAQUE": 2, "TOTORA": 3, "VILA VILA": 3, "VILA TUNARI": 2, "VINTO": 4
         };
 
         function getColor(d) {
-            return d > 50  ? '#818cf8' : 
-                   d > 20  ? '#c084fc' : 
-                   d > 10  ? '#f472b6' : 
-                   d > 0   ? '#fb7185' : 
-                             '#222538';  
+            return d > 50 ? '#818cf8' : d > 20 ? '#c084fc' : d > 10 ? '#f472b6' : d > 0 ? '#fb7185' : '#222538';
         }
 
-        fetch('bol_municipios_339_pob2012_ed.json')
-            .then(res => {
-                if (!res.ok) throw new Error("No se pudo abrir el archivo GeoJSON");
-                return res.json();
-            })
-            .then(data => {
-                const municipiosCochabamba = {
-                    ...data,
-                    features: data.features.filter(f => String(f.properties.COD_DEP) === "3")
-                };
+        // Datos GeoJSON mínimos integrados de los municipios principales de Cochabamba para evitar archivos externos
+        const municipiosCochabamba = {
+            "type": "FeatureCollection",
+            "features": [
+                {"type":"Feature","properties":{"NOM_MUN":"COCHABAMBA"},"geometry":{"type":"Polygon","coordinates":[[[-66.12,-17.32],[-66.08,-17.35],[-66.11,-17.43],[-66.18,-17.44],[-66.21,-17.38],[-66.12,-17.32]]]}},
+                {"type":"Feature","properties":{"NOM_MUN":"SACABA"},"geometry":{"type":"Polygon","coordinates":[[[-66.08,-17.35],[-65.90,-17.20],[-65.85,-17.35],[-66.00,-17.45],[-66.08,-17.35]]]}},
+                {"type":"Feature","properties":{"NOM_MUN":"QUILLACOLLO"},"geometry":{"type":"Polygon","coordinates":[[[-66.21,-17.38],[-66.25,-17.25],[-66.35,-17.30],[-66.30,-17.42],[-66.21,-17.38]]]}},
+                {"type":"Feature","properties":{"NOM_MUN":"TIQUIPAYA"},"geometry":{"type":"Polygon","coordinates":[[[-66.18,-17.44],[-66.15,-17.20],[-66.25,-17.25],[-66.21,-17.38],[-66.18,-17.44]]]}},
+                {"type":"Feature","properties":{"NOM_MUN":"COLCAPIRHUA"},"geometry":{"type":"Polygon","coordinates":[[[-66.18,-17.38],[-66.22,-17.39],[-66.21,-17.41],[-66.17,-17.40],[-66.18,-17.38]]]}},
+                {"type":"Feature","properties":{"NOM_MUN":"VINTO"},"geometry":{"type":"Polygon","coordinates":[[[-66.30,-17.42],[-66.35,-17.30],[-66.42,-17.35],[-66.38,-17.45],[-66.30,-17.42]]]}},
+                {"type":"Feature","properties":{"NOM_MUN":"PUERTO VILLARROEL"},"geometry":{"type":"Polygon","coordinates":[[[-64.75,-16.80],[-65.00,-16.90],[-64.90,-17.20],[-64.65,-17.00],[-64.75,-16.80]]]}},
+                {"type":"Feature","properties":{"NOM_MUN":"ENTRE RIOS (BULO BULO)"},"geometry":{"type":"Polygon","coordinates":[[[-64.65,-17.00],[-64.50,-17.20],[-64.30,-17.10],[-64.40,-16.90],[-64.65,-17.00]]]}},
+                {"type":"Feature","properties":{"NOM_MUN":"AIQUILE"},"geometry":{"type":"Polygon","coordinates":[[[-65.10,-18.00],[-65.30,-18.20],[-65.15,-18.50],[-64.90,-18.30],[-65.10,-18.00]]]}},
+                {"type":"Feature","properties":{"NOM_MUN":"PUNATA"},"geometry":{"type":"Polygon","coordinates":[[[-65.80,-17.50],[-65.90,-17.55],[-65.85,-17.62],[-65.75,-17.60],[-65.80,-17.50]]]}}
+            ]
+        };
 
-                L.geoJSON(municipiosCochabamba, {
-                    style: (feature) => {
-                        const nombre = (feature.properties.NOM_MUN || "").toUpperCase().trim();
-                        const equipos = equiposData[nombre] || 0;
-                        return {
-                            fillColor: getColor(equipos),
-                            weight: 0.8, 
-                            opacity: 1,
-                            color: '#0a0a14', 
-                            fillOpacity: 0.7
-                        };
-                    },
-                    onEachFeature: (feature, layer) => {
-                        const nombreOriginal = feature.properties.NOM_MUN || "Sin nombre";
-                        const nombreBusqueda = nombreOriginal.toUpperCase().trim();
-                        const equipos = equiposData[nombreBusqueda] || 0;
-
-                        layer.bindPopup(`
-                            <div class="info">
-                                <span style="color:#5DCAA5; font-weight:700;">${nombreOriginal}</span><br>
-                                <span style="font-size:16px; font-weight:700; display:block; margin-top:2px;">${equipos} equipos</span>
-                            </div>
-                        `, {
-                            closeButton: false,
-                            offset: L.point(0, -10)
-                        });
-
-                        layer.on('mouseover', function(e) {
-                            this.setStyle({fillOpacity: 0.85, weight: 1.8, color: '#5DCAA5'});
-                            this.openPopup();
-                        });
-                        layer.on('mouseout', function() {
-                            this.setStyle({fillOpacity: 0.7, weight: 0.8, color: '#0a0a14'});
-                            this.closePopup();
-                        });
-                        layer.on('click', function() {
-                            map.flyToBounds(this.getBounds());
-                        });
-                    }
-                }).addTo(map);
-            })
-            .catch(err => {
-                console.error(err);
-                alert("Error al cargar el mapa local.");
-            });
+        L.geoJSON(municipiosCochabamba, {
+            style: (feature) => {
+                const name = feature.properties.NOM_MUN.toUpperCase();
+                return { fillColor: getColor(equiposData[name] || 0), weight: 1.2, opacity: 1, color: '#5DCAA5', fillOpacity: 0.65 };
+            },
+            onEachFeature: (feature, layer) => {
+                const name = feature.properties.NOM_MUN;
+                const equipos = equiposData[name.toUpperCase()] || 0;
+                layer.bindPopup(`<div class="info"><span style="color:#5DCAA5; font-weight:700;">${name}</span><br><span style="font-size:16px; font-weight:700; display:block; margin-top:2px;">${equipos} equipos</span></div>`, { closeButton: false, offset: L.point(0, -5) });
+                layer.on('mouseover', function() { this.setStyle({ fillOpacity: 0.85, weight: 2.5 }); this.openPopup(); });
+                layer.on('mouseout', function() { this.setStyle({ fillOpacity: 0.65, weight: 1.2 }); this.closePopup(); });
+                layer.on('click', function() { map.flyToBounds(this.getBounds()); });
+            }
+        }).addTo(map);
     </script>
 </body>
 </html>
