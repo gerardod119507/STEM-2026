@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STEM+ 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"/>
+<style>
+:root{
+  --bg:#0a0a14;--panel:rgba(16,18,30,.95);--line:rgba(255,255,255,.08);
+  --acc:#5DCAA5;--acc-dim:rgba(93,202,165,.14);--warn:#fbbf24;--bad:#fb5d6b;--blue:#5b6cf0;
+  --txt:#e8ecf1;--mut:#8a94a6;--font:'Outfit',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:var(--font);font-weight:400;user-select:none;}
+body,html{height:100%;background:var(--bg);color:var(--txt);overflow:hidden;}
+#map{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;background:#0d0e15;}
+
+/* Clústeres circulares estéticos solicitados */
+.leaflet-marker-cluster-small, 
+.leaflet-marker-cluster-medium, 
+.leaflet-marker-cluster-large {
+  background-color: rgba(93, 202, 165, 0.2) !important;
+  border: 2px solid var(--acc) !important;
+  border-radius: 50% !important;
+}
+.leaflet-marker-cluster-small div, 
+.leaflet-marker-cluster-medium div, 
+.leaflet-marker-cluster-large div {
+  background-color: var(--acc) !important;
+  color: var(--bg) !important;
+  font-weight: 700 !important;
+  border-radius: 50% !important;
+}
+
+/* Interfaz minimalista original mejorada */
+.pnl{position:absolute;top:16px;left:16px;width:340px;background:var(--panel);z-index:10;border-radius:16px;border:1px solid var(--line);backdrop-filter:blur(16px);display:flex;flex-direction:column;max-height:calc(100% - 32px);box-shadow:0 20px 40px rgba(0,0,0,.5);}
+.hdr{padding:16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
+.title-group h1{font-size:18px;font-weight:700;letter-spacing:-0.5px;color:#fff;}
+.title-group p{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;font-weight:600;}
+
+/* Buscador Inteligente tipo Google */
+.search-box {padding:8px 16px;position:relative;}
+.search-input {width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;color:#fff;font-size:13px;outline:none;transition:all 0.2s;}
+.search-input:focus {border-color:var(--acc);background:rgba(255,255,255,.07);}
+.search-results {position:absolute;top:100%;left:16px;right:16px;background:#141625;border:1px solid var(--line);border-radius:10px;max-height:200px;overflow-y:auto;z-index:20;display:none;box-shadow:0 10px 20px rgba(0,0,0,0.3);}
+.search-item {padding:10px;font-size:12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.03);display:flex;justify-content:space-between;align-items:center;}
+.search-item:hover {background:var(--acc-dim);color:var(--acc);}
+.search-type {font-size:10px;text-transform:uppercase;padding:2px 6px;border-radius:4px;font-weight:600;}
+
+/* Selector de Áreas Operativas */
+.tabs-areas {display:flex;padding:4px 16px;gap:6px;border-bottom:1px solid var(--line);}
+.tab-btn {flex:1;padding:8px;font-size:11px;font-weight:600;background:none;border:1px solid var(--line);border-radius:8px;color:var(--mut);cursor:pointer;transition:all 0.2s;text-align:center;}
+.tab-btn.active {background:var(--acc-dim);border-color:var(--acc);color:var(--acc);}
+
+.scrl{padding:16px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:12px;}
+
+/* Acordeón adaptable fluido */
+.acc-section {border:1px solid var(--line);border-radius:12px;overflow:hidden;background:rgba(255,255,255,.01);transition:all 0.3s ease;}
+.acc-trigger {width:100%;padding:14px;background:none;border:none;color:#fff;font-size:13px;font-weight:600;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.acc-trigger:after {content:'▾';font-size:10px;color:var(--mut);transition:transform 0.3s;}
+.acc-section.open .acc-trigger:after {transform:rotate(180deg);color:var(--acc);}
+.acc-content {max-height:0;overflow:hidden;transition:max-height 0.3s ease-in-out;background:rgba(0,0,0,.15);}
+.acc-section.open .acc-content {max-height:500px;}
+
+.grid-sw {display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;}
+.sw{padding:12px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid var(--line);cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:4px;}
+.sw:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.15);}
+.sw.on{background:var(--acc-dim);border-color:var(--acc);}
+.sw .lbl{font-size:12px;font-weight:600;color:var(--mut);transition:color .2s;}
+.sw.on .lbl{color:var(--acc);}
+.sw .val{font-size:18px;font-weight:700;color:#fff;}
+
+/* Selectores y submenús originales intactos */
+.sel-box {padding:12px;display:flex;flex-direction:column;gap:6px;}
+.sel-box label {font-size:11px;color:var(--mut);font-weight:600;text-transform:uppercase;}
+select {width:100%;padding:10px;background:#141625;border:1px solid var(--line);border-radius:8px;color:#fff;font-size:13px;outline:none;cursor:pointer;}
+
+.sub-pnl{padding:0 12px 12px 12px;display:none;flex-direction:column;gap:10px;}
+.sub-pnl.show{display:flex;}
+.seg{display:flex;background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:8px;padding:2px;}
+.seg div{flex:1;padding:6px;font-size:11px;font-weight:600;text-align:center;border-radius:6px;cursor:pointer;color:var(--mut);transition:all .2s;}
+.seg div.on{background:rgba(255,255,255,.05);color:#fff;}
+
+.btn-edit-source {margin:4px 16px 16px 16px;padding:12px;background:rgba(255,255,255,.03);border:1px dashed var(--line);border-radius:10px;color:var(--mut);font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all 0.2s;}
+.btn-edit-source:hover {background:rgba(253,191,36,0.08);border-color:var(--warn);color:var(--warn);}
+
+.f-pnl{position:absolute;bottom:24px;right:24px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;z-index:10;width:320px;box-shadow:0 10px 30px rgba(0,0,0,.4);backdrop-filter:blur(16px);display:none;}
+.f-pnl.show{display:block;}
+.f-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line);}
+.f-hdr h3{font-size:14px;font-weight:700;}
+.f-close{cursor:pointer;color:var(--mut);font-size:14px;}
+.f-close:hover{color:#fff;}
+
+.nu-item{padding:8px;border-bottom:1px solid var(--line);}
+.nu-item:last-child{border-bottom:none;}
+.nu-item .n{font-size:12px;font-weight:600;color:#fff;}
+.nu-item .m{font-size:11px;color:var(--mut);margin-top:2px;}
+
+#btnReset {cursor:pointer;color:var(--mut);font-size:12px;transition:color .2s;}
+#btnReset:hover {color:var(--bad);}
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div class="pnl">
+  <div class="hdr">
+    <div class="title-group">
+      <h1>STEM+ 2026</h1>
+      <p>Logística y Despliegue</p>
+    </div>
+    <span id="btnReset">Reiniciar</span>
+  </div>
+
+  <div class="search-box">
+    <input type="text" class="search-input" id="mapSearch" placeholder="🔍 Buscar colegio o equipo...">
+    <div class="search-results" id="searchResults"></div>
+  </div>
+
+  <div class="tabs-areas">
+    <button class="tab-btn active" id="btnAreaLog" onclick="switchArea('logistica')">Logística</button>
+    <button class="tab-btn" id="btnAreaAnt" onclick="switchArea('antorcha')">Rutas Antorcha</button>
+    <button class="tab-btn" id="btnAreaTal" onclick="switchArea('talleres')">Info Talleres</button>
+  </div>
+
+  <div class="scrl">
+    <div class="acc-section open" id="secCapas">
+      <button class="acc-trigger" onclick="toggleAcc(this)">Filtros de Capa</button>
+      <div class="acc-content">
+        <div class="grid-sw">
+          <div class="sw" id="swRecintos"><span class="lbl">Centros</span><span class="val" id="cntRec">0</span></div>
+          <div class="sw" id="swColegios"><span class="lbl">Colegios</span><span class="val" id="cntCol">0</span></div>
+          <div class="sw" id="swHitos"><span class="lbl">Hitos</span><span class="val" id="cntHit">0</span></div>
+          <div class="sw" id="swEquipos"><span class="lbl">Equipos</span><span class="val" id="cntEq">0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="acc-section" id="secCentros">
+      <button class="acc-trigger" onclick="toggleAcc(this)">Lugar de Capacitación</button>
+      <div class="acc-content">
+        <div class="sel-box">
+          <select id="selRecinto">
+            <option value="">Todos los lugares</option>
+          </select>
+        </div>
+
+        <div class="sub-pnl" id="subColegios">
+          <div class="seg">
+            <div class="on" data-cat="Todos">Todos</div>
+            <div data-cat="Junior">Junior</div>
+            <div data-cat="Juvenil">Juvenil</div>
+          </div>
+        </div>
+
+        <div class="sub-pnl" id="subHitos">
+          <div class="seg">
+            <div class="on" data-vista="H1">Hito 1</div>
+            <div data-vista="H2">Hito 2</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <button class="btn-edit-source" style="margin:0; border-style:solid; background:rgba(91,108,240,0.05); color:#5b6cf0; border-color:rgba(91,108,240,0.2);" id="btnNoubic">⚠️ Ver Entregas Pendientes</button>
+  </div>
+
+  <div class="btn-edit-source" onclick="openEditor()">🛠️ Modificar Fuente de Información</div>
+</div>
+
+<div class="f-pnl" id="nuPanel">
+  <div class="f-hdr"><h3>Entregas sin Coordenadas</h3><span class="f-close" id="nuClose">✕</span></div>
+  <div id="nuList" style="max-height:240px; overflow-y:auto;"></div>
+</div>
+
+<div class="f-pnl" id="editPanel" style="bottom: 100px;">
+  <div class="f-hdr"><h3>Modificar Base de Datos</h3><span class="f-close" onclick="closeEditor()">✕</span></div>
+  <div style="font-size:12px; color:var(--mut); display:flex; flex-direction:column; gap:8px;">
+    <p>Selecciona un elemento en el mapa para editar sus datos adjuntos o introduce nuevas coordenadas.</p>
+    <button class="tab-btn" style="color:var(--warn); border-color:var(--warn);" onclick="alert('Conexión lista para enlazar modificaciones con v3.json.')">Confirmar Cambios</button>
+  </div>
+</div>
+
+<script>
+const DATA_URL = "v3.json"; // Cambiado a local para que tu estructura de carpetas lea directo
+let MAP, CLUSTER_COL, CLUSTER_EQ;
+let LAYER_REC = L.layerGroup(), LAYER_HIT = L.layerGroup();
+let DATA_REC=[], DATA_COL=[], DATA_HIT=[], DATA_EQ=[], NOUBIC=[];
+
+// Estado original absoluto
+const st = { recintos:false, colegios:false, hitos:false, equipos:false, recSel:'', cat:'Todos', vista:'H1' };
+
+// MAPA BASE ORIGINAL
+MAP = L.map('map', { zoomControl: false }).setView([-17.3935, -66.1570], 13);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20 }).addTo(MAP);
+
+CLUSTER_COL = L.markerClusterGroup({ maxClusterRadius: 40 });
+CLUSTER_EQ = L.markerClusterGroup({ maxClusterRadius: 40 });
+MAP.addLayer(LAYER_REC); MAP.addLayer(CLUSTER_COL); MAP.addLayer(LAYER_HIT); MAP.addLayer(CLUSTER_EQ);
+
+// Acordeón fluido corregido
+function toggleAcc(btn) {
+  const section = btn.parentElement;
+  const isOpen = section.classList.contains('open');
+  document.querySelectorAll('.acc-section').forEach(sec => sec.classList.remove('open'));
+  if (!isOpen) section.classList.add('open');
+}
+
+function switchArea(area) {
+  document.querySelectorAll('.tabs-areas .tab-btn').forEach(b => b.classList.remove('active'));
+  if(area === 'logistica') document.getElementById('btnAreaLog').classList.add('active');
+  if(area === 'antorcha') document.getElementById('btnAreaAnt').classList.add('active');
+  if(area === 'talleres') document.getElementById('btnAreaTal').classList.add('active');
+}
+
+function openEditor() { document.getElementById('editPanel').classList.add('show'); }
+function closeEditor() { document.getElementById('editPanel').classList.remove('show'); }
+
+// CARGA COMPLETA Y FIEL DE TU JSON ORIGINAL
+async function load() {
+  try {
+    const r = await fetch(DATA_URL);
+    const d = await r.json();
+    DATA_REC = d.recintos || [];
+    DATA_COL = d.colegios || [];
+    DATA_HIT = d.hitos || [];
+    DATA_EQ = d.equipos || [];
+    NOUBIC = d.no_ubicadas || [];
+    
+    const sel = document.getElementById('selRecinto');
+    DATA_REC.forEach(rec => {
+      let opt = document.createElement('option');
+      opt.value = rec.nombre; opt.textContent = rec.nombre;
+      sel.appendChild(opt);
+    });
+
+    document.getElementById('cntRec').textContent = DATA_REC.length;
+    document.getElementById('cntCol').textContent = DATA_COL.length;
+    document.getElementById('cntHit').textContent = DATA_HIT.length;
+    document.getElementById('cntEq').textContent = DATA_EQ.length;
+
+    initSearchAuto();
+    update();
+  } catch(e) { console.error("Error cargando base v3.json", e); }
+}
+
+// LÓGICA DE FILTRADO Y RENDERIZADO ORIGINAL COMPLETA E INTACTA
+function update() {
+  LAYER_REC.clearLayers();
+  CLUSTER_COL.clearLayers();
+  LAYER_HIT.clearLayers();
+  CLUSTER_EQ.clearLayers();
+
+  // 1. Recintos (Lugar de Capacitación)
+  if (st.recintos) {
+    DATA_REC.forEach(r => {
+      if (!st.recSel || r.nombre === st.recSel) {
+        L.circleMarker([r.lat, r.lng], { radius: 9, color: '#fff', fillColor: '#5DCAA5', fillOpacity: 0.9, weight: 2 })
+         .bindPopup(`<b>${r.nombre}</b><br>${r.direccion || ''}`).addTo(LAYER_REC);
+      }
+    });
+  }
+
+  // 2. Colegios (Mapeo condicional idéntico al original)
+  if (st.colegios) {
+    DATA_COL.forEach(c => {
+      if (!st.recSel || c.recinto_asignado === st.recSel) {
+        if (st.cat === 'Todos' || c.cat === st.cat) {
+          L.circleMarker([c.lat, c.lng], { radius: 6, color: '#5b6cf0', fillColor: '#fff', fillOpacity: 0.7, weight: 1.5 })
+           .bindPopup(`<b>${c.ue}</b><br>Categoría: ${c.cat}<br>Asignado a: ${c.recinto_asignado}`).addTo(CLUSTER_COL);
+        }
+      }
+    });
+  }
+
+  // 3. Hitos (Mapeo condicional idéntico al original)
+  if (st.hitos) {
+    DATA_HIT.forEach(h => {
+      if (!st.recSel || h.recinto === st.recSel) {
+        let val = st.vista === 'H1' ? (h.h1_jr + h.h1_juv) : (h.h2_jr + h.h2_juv);
+        if (val > 0) {
+          L.circleMarker([h.lat, h.lng], { radius: 7, color: '#fbbf24', fillColor: '#141625', fillOpacity: 0.8, weight: 2 })
+           .bindPopup(`<b>Hito: ${h.ue}</b><br>Pendientes ${st.vista}: ${val}`).addTo(LAYER_HIT);
+        }
+      }
+    });
+  }
+
+  // 4. Equipos
+  if (st.equipos) {
+    DATA_EQ.forEach(e => {
+      L.circleMarker([e.lat, e.lng], { radius: 6, color: '#fb5d6b', fillColor: '#fff', fillOpacity: 0.8, weight: 1.5 })
+       .bindPopup(`<b>Equipo: ${e.nombre}</b><br>Colegio: ${e.ue}`).addTo(CLUSTER_EQ);
+    });
+  }
+}
+
+// Subpaneles desplegables visuales originales
+function placeSubs() {
+  const rOk = st.recintos, cOk = st.colegios, hOk = st.hitos;
+  document.getElementById('subColegios').classList.toggle('show', cOk);
+  document.getElementById('subHitos').classList.toggle('show', hOk);
+}
+
+// Asignación de Interruptores originales
+document.getElementById('swRecintos').onclick = function() { this.classList.toggle('on'); st.recintos = this.classList.contains('on'); placeSubs(); update(); };
+document.getElementById('swColegios').onclick = function() { this.classList.toggle('on'); st.colegios = this.classList.contains('on'); placeSubs(); update(); };
+document.getElementById('swHitos').onclick = function() { this.classList.toggle('on'); st.hitos = this.classList.contains('on'); placeSubs(); update(); };
+document.getElementById('swEquipos').onclick = function() { this.classList.toggle('on'); st.equipos = this.classList.contains('on'); placeSubs(); update(); };
+
+document.getElementById('selRecinto').onchange = function() { st.recSel = this.value; update(); };
+
+document.querySelectorAll('#subColegios .seg div').forEach(ch => {
+  ch.onclick = () => {
+    document.querySelectorAll('#subColegios .seg div').forEach(x => x.classList.remove('on'));
+    ch.classList.add('on'); st.cat = ch.dataset.cat; update();
+  }
+});
+
+document.querySelectorAll('#subHitos .seg div').forEach(sg => {
+  sg.onclick = () => {
+    document.querySelectorAll('#subHitos .seg div').forEach(x => x.classList.remove('on'));
+    sg.classList.add('on'); st.vista = sg.dataset.vista; update();
+  }
+});
+
+// Buscador predictivo inteligente real enlazado
+function initSearchAuto() {
+  const inp = document.getElementById('mapSearch');
+  const res = document.getElementById('searchResults');
+  
+  inp.oninput = () => {
+    const val = inp.value.toLowerCase().trim();
+    if(!val) { res.style.display = 'none'; return; }
+    
+    let html = '';
+    DATA_COL.forEach(c => {
+      if(c.ue && c.ue.toLowerCase().includes(val)) {
+        html += `<div class="search-item" onclick="flyToPos(${c.lat}, ${c.lng}, '${c.ue}')"><span>🏫 ${c.ue}</span><span class="search-type" style="background:rgba(91,108,240,0.1); color:#5b6cf0;">Colegio</span></div>`;
+      }
+    });
+    DATA_EQ.forEach(e => {
+      if(e.nombre && e.nombre.toLowerCase().includes(val)) {
+        html += `<div class="search-item" onclick="flyToPos(${e.lat}, ${e.lng}, '${e.nombre}')"><span>🤖 ${e.nombre}</span><span class="search-type" style="background:rgba(93,202,165,0.1); color:#5DCAA5;">Equipo</span></div>`;
+      }
+    });
+    
+    if(html) { res.innerHTML = html; res.style.display = 'block'; } 
+    else { res.style.display = 'none'; }
+  };
+  document.addEventListener('click', (e) => { if(e.target !== inp) res.style.display = 'none'; });
+}
+
+function flyToPos(lat, lng, name) {
+  if(lat && lng) {
+    MAP.flyTo([lat, lng], 17);
+    L.popup().setLatLng([lat, lng]).setContent(`<b>${name}</b>`).openOn(MAP);
+  }
+}
+
+// Entregas Pendientes original
+document.getElementById('btnNoubic').onclick = () => {
+  const list = document.getElementById('nuList');
+  if(!NOUBIC.length){ list.innerHTML = '<div class="nu-item"><div class="n">Sin pendientes</div></div>'; }
+  else {
+    list.innerHTML = NOUBIC.map(u => `<div class="nu-item"><div class="n">${u.ue}</div><div class="m">📍 H1: ${u.h1_jr+u.h1_juv} · H2: ${u.h2_jr+u.h2_juv}</div></div>`).join('');
+  }
+  document.getElementById('nuPanel').classList.add('show');
+};
+document.getElementById('nuClose').onclick = () => document.getElementById('nuPanel').classList.remove('show');
+
+// Reiniciar original
+document.getElementById('btnReset').onclick = () => {
+  Object.assign(st, { recintos:false, colegios:false, hitos:false, equipos:false, recSel:'', cat:'Todos', vista:'H1' });
+  document.querySelectorAll('.sw').forEach(s => s.classList.remove('on'));
+  document.getElementById('selRecinto').value = '';
+  placeSubs(); update();
+};
+
+window.onload = load;
+</script>
+</body>
+</html>
